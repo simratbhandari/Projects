@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-4">Security Dashboard</h1>
+<div class="grid gap-6 md:grid-cols-3">
+  <div class="bg-white rounded-2xl shadow p-5">
+    <h2 class="font-semibold mb-2">Blocklist</h2>
+    <ul class="text-sm space-y-1">
+      {% for ip, until in blocklist.items() %}
+      <li class="flex items-center justify-between">
+        <span class="font-mono">{{ ip }}</span>
+        <form method="post" action="/dashboard/unblock/{{ ip }}">
+          <button class="text-xs px-2 py-1 rounded bg-emerald-600 text-white">Unblock</button>
+        </form>
+      </li>
+      {% else %}
+      <li class="text-slate-500">No IPs blocked.</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="md:col-span-2 bg-white rounded-2xl shadow p-5 overflow-x-auto">
+    <h2 class="font-semibold mb-3">Recent Incidents</h2>
+    <table class="min-w-full text-sm">
+      <thead class="text-left text-slate-500">
+        <tr>
+          <th class="py-2 pr-4">When</th>
+          <th class="py-2 pr-4">IP</th>
+          <th class="py-2 pr-4">Path</th>
+          <th class="py-2 pr-4">Heur.</th>
+          <th class="py-2 pr-4">AI</th>
+          <th class="py-2 pr-4">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+        <tr class="border-t">
+          <td class="py-2 pr-4 whitespace-nowrap">{{ r['ts'] }}</td>
+          <td class="py-2 pr-4 font-mono">{{ r['ip'] }}</td>
+          <td class="py-2 pr-4">{{ r['method'] }} {{ r['path'] }}</td>
+          <td class="py-2 pr-4">{{ '%.2f'|format(r['heuristic_score']) }} ({{ r['heuristic_hits'] }})</td>
+          <td class="py-2 pr-4">{{ r['ai_verdict'] }} {{ '%.2f'|format(r['ai_confidence'] or 0) }}<br><span class="text-slate-500">{{ r['ai_categories'] }}</span></td>
+          <td class="py-2 pr-4">{{ r['action'] }}</td>
+        </tr>
+        <tr class="bg-slate-50">
+          <td colspan="6" class="p-3">
+            <details>
+              <summary class="cursor-pointer text-slate-700">Details & Mitigation Script</summary>
+              <div class="grid md:grid-cols-2 gap-3 mt-2">
+                <pre class="bg-white border rounded-xl p-3 overflow-x-auto"><strong>Surface</strong>\n{{ r['surface'] }}</pre>
+                <pre class="bg-white border rounded-xl p-3 overflow-x-auto"><strong>Mitigation</strong>\n{{ r['mitigation_script'] }}</pre>
+              </div>
+            </details>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="py-6 text-center text-slate-500">No incidents yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
